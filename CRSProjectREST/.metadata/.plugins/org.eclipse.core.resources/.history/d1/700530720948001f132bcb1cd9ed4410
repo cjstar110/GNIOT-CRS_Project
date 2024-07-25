@@ -1,0 +1,249 @@
+package com.gniot.crs.dao;
+
+import com.gniot.crs.bean.Student;
+import com.gniot.crs.bean.User;
+import com.gniot.crs.constant.SQLConstant;
+import com.gniot.crs.exception.RegistrationException;
+import com.gniot.crs.utils.DBUtils;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class UserDAOImpl implements UserDAOInterface {
+
+    @Override
+    public void register(User user) throws RegistrationException {
+        Connection connection = null;
+        PreparedStatement userStatement = null;
+        PreparedStatement studentStatement = null;
+
+        try {
+            connection = DBUtils.getConnection();
+            connection.setAutoCommit(false); // Ensure we control the transaction
+
+            // Insert into users table
+            userStatement = connection.prepareStatement(SQLConstant.INSERT_LOGIN);
+            userStatement.setString(1, user.getUsername());
+            userStatement.setString(2, user.getPassword());
+            userStatement.setString(3, user.getRole());
+            userStatement.executeUpdate();
+
+            // Insert into students or professors table based on role
+            if (user.getRole().equalsIgnoreCase("student")) {
+                studentStatement = connection.prepareStatement(SQLConstant.INSERT_STUDENT_DETAILS);
+                studentStatement.setInt(1, Integer.parseInt(user.getId())); // Assuming user.getId() returns the user ID
+                studentStatement.setString(2, user.getStudent().getFirstName());
+                studentStatement.setString(3, user.getStudent().getLastName());
+                studentStatement.setString(4, user.getStudent().getGender());
+                studentStatement.setInt(5, user.getStudent().getAge());
+                studentStatement.setDouble(6, user.getStudent().getTenthPercentage());
+                studentStatement.setDouble(7, user.getStudent().getTwelfthPercentage());
+                studentStatement.setString(8, user.getStudent().getAddress());
+                studentStatement.setString(9, user.getStudent().getPhoneNumber());
+                studentStatement.setString(10, user.getStudent().getEmailId());
+                studentStatement.executeUpdate();
+            } else if (user.getRole().equalsIgnoreCase("professor")) {
+                studentStatement = connection.prepareStatement(SQLConstant.INSERT_PROFESSOR_DETAIL);
+                studentStatement.setInt(1, Integer.parseInt(user.getId())); // Assuming user.getId() returns the user ID
+                studentStatement.setString(2, user.getStudent().getFirstName());
+                studentStatement.setString(3, user.getStudent().getLastName());
+                studentStatement.setString(4, user.getStudent().getGender());
+                studentStatement.setInt(5, user.getStudent().getAge());
+                studentStatement.setString(6, user.getStudent().getAddress());
+                studentStatement.setString(7, user.getStudent().getPhoneNumber());
+                studentStatement.setString(8, user.getStudent().getEmailId());
+                studentStatement.executeUpdate();
+            }
+
+            connection.commit();
+            System.out.println("User registered successfully");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw new RegistrationException("Error occurred while registering the user: " + e.getMessage());
+        } finally {
+            DBUtils.closeResources(userStatement, connection);
+            DBUtils.closeResources(studentStatement, connection);
+        }
+    }
+
+    @Override
+    public void login(String username, String password) throws Exception {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+
+        try {
+            connection = DBUtils.getConnection();
+            statement = connection.prepareStatement(SQLConstant.FETCH_LOGIN);
+            statement.setString(1, username);
+            statement.setString(2, password);
+
+            resultSet = statement.executeQuery();
+
+            if (!resultSet.next()) {
+                throw new Exception("Invalid username or password");
+            } else {
+                System.out.println("Login successful");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new Exception("Error occurred while logging in: " + e.getMessage());
+        } finally {
+            DBUtils.closeResources(statement, connection);
+        }
+    }
+
+    @Override
+    public void changePassword(String username, String oldPassword, String newPassword) throws Exception {
+        Connection connection = null;
+        PreparedStatement statement = null;
+
+        try {
+            connection = DBUtils.getConnection();
+            connection.setAutoCommit(false); // Ensure we control the transaction
+
+            // Verify old password
+            statement = connection.prepareStatement(SQLConstant.MATCH_PASSWORD);
+            statement.setString(1, username);
+            statement.setString(2, oldPassword);
+
+            ResultSet resultSet = statement.executeQuery();
+            if (!resultSet.next()) {
+                throw new Exception("Old password does not match");
+            }
+
+            // Update password
+            statement = connection.prepareStatement(SQLConstant.UPDATE_NEW_PASSWORD);
+            statement.setString(1, newPassword);
+            statement.setString(2, username);
+            statement.executeUpdate();
+
+            connection.commit();
+            System.out.println("Password changed successfully");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw new Exception("Error occurred while changing the password: " + e.getMessage());
+        } finally {
+            DBUtils.closeResources(statement, connection);
+        }
+    }
+
+    @Override
+    public User findUserByUsername(String username) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        User user = null;
+
+        try {
+            connection = DBUtils.getConnection();
+            statement = connection.prepareStatement(SQLConstant.FETCH_STUDENT_DETAILS);
+            statement.setString(1, username);
+
+            resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                user = new User();
+                user.setId(resultSet.getString("user_id"));
+                user.setUsername(resultSet.getString("username"));
+                user.setPassword(resultSet.getString("password"));
+                user.setRole(resultSet.getString("role"));
+                user.setApproved(resultSet.getBoolean("approved"));
+
+                // Populate the Student details
+//                Student student = new Student(username, username, username, 0, 0, 0, username, username, username);
+//                student.setStudentName(resultSet.getString("first_name"));
+//                student.setStudentName(resultSet.getString("last_name"));
+//                student.setGender(resultSet.getString("gender"));
+//                student.setAge(resultSet.getInt("age"));
+//                student.setTenthPercentage(resultSet.getDouble("tenth_percentage"));
+//                student.setTenthPercentage(resultSet.getDouble("twelfth_percentage"));
+//                student.setAddress(resultSet.getString("address"));
+//                student.setPhoneNumber(resultSet.getString("phone_number"));
+//                student.setEmailId(resultSet.getString("email_id"));
+//                user.setStudent(student);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtils.closeResources(statement, connection);
+        }
+
+        return user;
+    }
+
+    @Override
+    public boolean updateDetails(int userId, String username, String department) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        boolean updated = false;
+
+        try {
+            connection = DBUtils.getConnection();
+            statement = connection.prepareStatement(SQLConstant.UPDATE_COURSE_SQL);
+            statement.setString(1, department);
+            statement.setInt(2, userId);
+
+            int rowsUpdated = statement.executeUpdate();
+            if (rowsUpdated > 0) {
+                updated = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtils.closeResources(statement, connection);
+        }
+
+        return updated;
+    }
+
+    @Override
+    public boolean updatePassword(String password) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        boolean updated = false;
+
+        try {
+            connection = DBUtils.getConnection();
+            statement = connection.prepareStatement(SQLConstant.UPDATE_NEW_PASSWORD);
+            statement.setString(1, password);
+
+            int rowsUpdated = statement.executeUpdate();
+            if (rowsUpdated > 0) {
+                updated = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtils.closeResources(statement, connection);
+        }
+
+        return updated;
+    }
+
+	public String getLoggedInUsername() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+}

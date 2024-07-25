@@ -1,0 +1,46 @@
+package com.gniot.crs.business;
+
+import com.gniot.crs.bean.User;
+import com.gniot.crs.dao.UserDAOInterface;
+import com.gniot.crs.exception.RegistrationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserOperation implements UserInterface {
+    private final UserDAOInterface userDAO;
+
+    public UserOperation(UserDAOInterface userDAO) {
+        this.userDAO = userDAO;
+    }
+
+    @Override
+    public void register(String username,String password,String role) throws RegistrationException {
+        userDAO.register(username,password,role);
+    }
+
+    @Override
+    public void login(String username, String password) throws Exception {
+        userDAO.login(username, password);
+    }
+
+    @Override
+    public void changePassword(String username, String oldPassword, String newPassword) throws Exception {
+        userDAO.changePassword(username, oldPassword, newPassword);
+    }
+
+    @Override
+    public User findUserByUsername(String username) {
+        return userDAO.findUserByUsername(username);
+    }
+
+    @Override
+    public boolean updateDetails(int userId, String username, String department) {
+        return userDAO.updateDetails(userId, username, department);
+    }
+
+    @Override
+    public boolean updatePassword(String password) {
+        return userDAO.updatePassword(password);
+    }
+}

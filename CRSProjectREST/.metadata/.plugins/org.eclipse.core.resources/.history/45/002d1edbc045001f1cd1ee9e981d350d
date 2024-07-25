@@ -1,0 +1,37 @@
+package com.gniot.crs.rest;
+
+import com.gniot.crs.bean.Course;
+import com.gniot.crs.bean.GradeRequest;
+import com.gniot.crs.bean.Student;
+import com.gniot.crs.business.ProfessorInterface;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/professor")
+public class ProfessorController {
+
+    private final ProfessorInterface professorService;
+
+    public ProfessorController(ProfessorInterface professorService) {
+        this.professorService = professorService;
+    }
+
+    @PostMapping(value = "/addGrade", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String addGrade(@RequestBody GradeRequest gradeRequest) {
+        professorService.addGrade(gradeRequest.getStudentId(), gradeRequest.getCourseId(), gradeRequest.getGrade(), gradeRequest.getProfessorId());
+        return "Grade added successfully";
+    }
+
+    @GetMapping(value = "/viewEnrolledStudents", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Student> viewEnrolledStudents(@RequestParam int professorId) {
+        return professorService.viewEnrolledStudents(professorId);
+    }
+
+    @GetMapping(value = "/courses", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Course> getProfessorCourses(@RequestParam int professorId) {
+        return professorService.getProfessorCourses(professorId);
+    }
+}

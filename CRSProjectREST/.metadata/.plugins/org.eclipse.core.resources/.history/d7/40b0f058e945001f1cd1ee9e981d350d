@@ -1,0 +1,69 @@
+package com.gniot.crs.rest;
+
+import com.gniot.crs.bean.User;
+import com.gniot.crs.business.UserOperation;
+import com.gniot.crs.exception.RegistrationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.bind.annotation.SessionAttributes;
+
+@RestController
+@RequestMapping("/user")
+@SessionAttributes("loggedInUser")
+public class UserController {
+
+    @Autowired
+    private UserOperation userOperation;
+
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestParam String username, @RequestParam String password, @ModelAttribute("loggedInUser") User loggedInUser) {
+        try {
+            userOperation.login(username, password);
+            loggedInUser = userOperation.findUserByUsername(username);
+            return ResponseEntity.ok("Login successful");
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Invalid username or password");
+        }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody User user) {
+        try {
+            userOperation.register(user);
+            return ResponseEntity.ok("Registration successful. Please wait for admin approval!");
+        } catch (RegistrationException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/changePassword")
+    public ResponseEntity<String> changePassword(@RequestParam String oldPassword, @RequestParam String newPassword, @ModelAttribute("loggedInUser") User loggedInUser) {
+        if (loggedInUser.getUsername() == null) {
+            return ResponseEntity.status(401).body("You must be logged in to change your password");
+        }
+
+        try {
+            userOperation.changePassword(loggedInUser.getUsername(), oldPassword, newPassword);
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/currentUsername")
+    public ResponseEntity<String> getCurrentUsername(@ModelAttribute("loggedInUser") User loggedInUser) {
+        if (loggedInUser.getUsername() == null) {
+            return ResponseEntity.status(401).body("No user is currently logged in");
+        }
+        return ResponseEntity.ok(loggedInUser.getUsername());
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(SessionStatus sessionStatus) {
+        sessionStatus.setComplete();
+        return ResponseEntity.ok("Logged out successfully");
+    }
+}

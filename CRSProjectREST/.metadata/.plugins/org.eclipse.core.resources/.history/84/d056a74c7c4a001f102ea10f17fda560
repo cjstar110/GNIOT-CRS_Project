@@ -1,0 +1,81 @@
+package com.gniot.crs.rest;
+
+import com.gniot.crs.bean.Course;
+import com.gniot.crs.business.AdminInterface;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/admin")
+public class AdminController {
+    private final AdminInterface adminService;
+
+    public AdminController(AdminInterface adminService) {
+        this.adminService = adminService;
+    }
+
+    @PostMapping(value = "/addCourse", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String addCourseToCatalog(  @RequestParam String courseName, @RequestParam String courseCode) {
+        adminService.addCourseToCatalog(courseName, courseCode);
+        return "Course added to catalog";
+    }
+
+    @DeleteMapping(value = "/removeCourse", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String removeCourseFromCatalog(@RequestParam int courseId) {
+        adminService.removeCourseFromCatalog(courseId);
+        return "Course removed from catalog";
+    }
+
+    @PutMapping(value = "/setBillAmount", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String setBillAmount(@RequestParam int courseId, @RequestParam int newBillAmount) {
+        adminService.setBillAmount(courseId, newBillAmount);
+        return "Bill amount updated";
+    }
+
+    @PostMapping(value = "/assignCourse", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String assignCourseToProfessor(@RequestParam int professorId, @RequestParam int courseId) {
+        adminService.assignCourseToProfessor(professorId, courseId);
+        return "Course assigned to professor";
+    }
+
+    @DeleteMapping(value = "/removeProfessorFromCourse", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String removeProfessorFromCourse(@RequestParam int courseId) {
+        adminService.removeProfessorFromCourse(courseId);
+        return "Professor removed from course";
+    }
+
+    @PutMapping(value = "/approveProfessor", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String approveProfessor(@RequestParam int professorId) {
+        adminService.approveProfessor(professorId);
+        return "Professor approved";
+    }
+
+    @DeleteMapping(value = "/removeProfessor", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String removeProfessor(@RequestParam int professorId) {
+        adminService.removeProfessor(professorId);
+        return "Professor removed";
+    }
+
+    @PutMapping(value = "/approveStudent", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String approveStudent(@RequestParam String username) {
+        adminService.approveStudent(username);
+        return "Student approved";
+    }
+
+    @GetMapping(value = "/courseCatalog", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Course> displayCourseCatalog() {
+        return adminService.displayCourseCatalog();
+    }
+
+    @GetMapping(value = "/pendingStudents", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> listPendingStudents() {
+        return adminService.listPendingStudents();
+    }
+
+    @GetMapping(value = "/pendingProfessors", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> listPendingProfessors() {
+        return adminService.listPendingProfessor();
+    }
+}

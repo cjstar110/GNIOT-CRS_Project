@@ -1,0 +1,20 @@
+/**
+ * 
+ */
+package com.gniot.crs.business;
+
+import com.gniot.crs.bean.User;
+import com.gniot.crs.exception.RegistrationException;
+
+/**
+ * 
+ */
+public interface UserInterface {
+	public boolean updateDetails(int userID, String userName, String userDepartment);
+	public boolean updatePassword(String password);
+	void register(String username,String password,String role) throws RegistrationException;
+	void login(String username, String password) throws Exception;
+	void changePassword(String username, String oldPassword, String newPassword) throws Exception;
+	User findUserByUsername(String username);
+
+}

@@ -1,0 +1,65 @@
+package com.gniot.crs.rest;
+
+import com.gniot.crs.bean.User;
+import com.gniot.crs.business.UserInterface;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/user")
+public class UserController {
+    private final UserInterface userService;
+
+    @Autowired
+    public UserController(UserInterface userService) {
+        this.userService = userService;
+    }
+
+    @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String registerUser(@RequestBody User user) {
+        try {
+            userService.register(user);
+            return "User registered successfully";
+        } catch (Exception e) {
+            return "Error registering user: " + e.getMessage();
+        }
+    }
+
+    @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String loginUser(@RequestParam String username, @RequestParam String password) {
+        try {
+            userService.login(username, password);
+            return "Login successful";
+        } catch (Exception e) {
+            return "Error logging in: " + e.getMessage();
+        }
+    }
+
+    @PutMapping(value = "/changePassword", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String changeUserPassword(@RequestParam String username, @RequestParam String oldPassword, @RequestParam String newPassword) {
+        try {
+            userService.changePassword(username, oldPassword, newPassword);
+            return "Password changed successfully";
+        } catch (Exception e) {
+            return "Error changing password: " + e.getMessage();
+        }
+    }
+
+    @GetMapping(value = "/find", produces = MediaType.APPLICATION_JSON_VALUE)
+    public User findUserByUsername(@RequestParam String username) {
+        return userService.findUserByUsername(username);
+    }
+
+    @PutMapping(value = "/updateDetails", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String updateUserDetails(@RequestParam int userId, @RequestParam String username, @RequestParam String department) {
+        boolean success = userService.updateDetails(userId, username, department);
+        return success ? "User details updated successfully" : "Error updating user details";
+    }
+
+    @PutMapping(value = "/updatePassword", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String updateUserPassword(@RequestParam String password) {
+        boolean success = userService.updatePassword(password);
+        return success ? "Password updated successfully" : "Error updating password";
+    }
+}

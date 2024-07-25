@@ -1,0 +1,47 @@
+package com.gniot.crs.dao;
+
+import com.gniot.crs.bean.User;
+import com.gniot.crs.exception.RegistrationException;
+/**
+ * Interface for User Data Access Object.
+ * This interface defines methods for user authentication and management.
+ */
+public interface UserDAOInterface {
+	/**
+     * Performs user login.
+     * This method is responsible for authenticating users.
+	 * @param password 
+	 * @param username 
+     */
+	 void login(String username, String password);
+	 /**
+	     * Registers a new user.
+	     * This method is responsible for adding a new user to the system.
+	 * @param user 
+	 * @throws RegistrationException 
+	     */
+	 void register(User user) throws RegistrationException;
+	 /**
+	     * Changes the password of a user.
+	     * This method allows users to change their passwords.
+	 * @param newPassword 
+	 * @param oldPassword 
+	 * @param username 
+	     */
+	 void changePassword(String username, String oldPassword, String newPassword);
+	 /**
+	     * Finds a user by username.
+	     * This method retrieves user information based on the username.
+	     *
+	     * @param username the username of the user to find
+	     * @return the User object corresponding to the username, or null if not found
+	     */
+	 User findUserByUsername(String username) ;
+	/**
+	 * Registers a new user. This method allows a new user to register by providing
+	 * a username, password, and role. If the user is a student, additional
+	 * information such as name, gender, age, etc., is collected. After successful
+	 * registration, the user's information is stored in the database. Students are
+	 * required to wait for admin approval before they can log in.
+	 */
+}
